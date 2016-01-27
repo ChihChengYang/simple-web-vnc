@@ -9,11 +9,11 @@ stream it over [WebSocket](https://github.com/gorilla/websocket "WebSocket") to 
 
 Browser sends control commands (mouse commands) to server over WebSocket as well.
 
+*Server --- H.264 ---> Browser (http://serverIP:8888)*
+*Server <--- Commands --- Browser*
+
 1. make
 2. run /bin/server
-
-* Server --- H.264 ---> Browser (http://serverIP:8888)
-* Server <--- Commands --- Browser
 
 * Encoder: H.264 (FFmpeg libs)
 * Protocol: Websocket (Go lib)
