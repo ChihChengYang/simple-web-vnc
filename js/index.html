@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<title>simple-web-vnc</title>  
+</head>
+<body>
+    <h2>simple-web-vnc</h2>
+
+	<canvas id="videoCanvas" width="800" height="600" style="border:solid;"></canvas>
+ 
+	<script type="text/javascript" src="/js/h264bsd_canvas.js" ></script>   	
+	<script type="text/javascript" src="/js/js264-vnc.js" ></script>  
+ 
+	
+	<script>
+	    // Set the body class to show/hide certain elements on mobile/desktop
+	    document.body.className = ('ontouchstart' in window) ? 'mobile' : 'desktop';
+        // Setup the WebSocket connection and start the player  
+        var client = new WebSocket( 'ws://' + window.location.host + '/play' );
+        var canvas = document.getElementById('videoCanvas');
+        var player = new js264(client, {canvas:canvas});
+    </script>
+	
+</body>
+</html>
