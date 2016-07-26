@@ -104,7 +104,7 @@ void encoder_destroy(handle_Encoder *self) {
 
 void encoder_encode(handle_Encoder *self, void *rgb_pixels, char *encoded_data, size_t *encoded_size) {
 	uint8_t *in_data[1] = {(uint8_t *)rgb_pixels};
-	int in_linesize[1] = {self->in_width * 4};
+	int in_linesize[1] = { self->in_width * 4};
 	sws_scale(self->sws, in_data, in_linesize, 0, self->in_height, self->frame->data, self->frame->linesize);
 		
 	int available_size = *encoded_size;

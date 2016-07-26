@@ -11,6 +11,8 @@ extern "C" {
 
     int x11_screen_subwindow( unsigned int displayIndex, char* windowName, void** getWindow );
 
+    int x11_raise_subwindow(unsigned int displayIndex, void* setWindow );
+ 
 #ifdef __cplusplus
 }
 #endif

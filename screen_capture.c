@@ -285,7 +285,7 @@ int x11_grab_screen(char* data, unsigned int displayIndex, int x, int y, int w, 
        * machine (sizeof(unsigned long) = 8)
        */
       uint32_t pixel = (uint32_t)XGetPixel(img, i, j) | (0xff << 24);
-      
+
       /* Java int is always big endian so output as ARGB */
       if(little_endian)
       {
@@ -323,4 +323,68 @@ int x11_grab_screen(char* data, unsigned int displayIndex, int x, int y, int w, 
   /* return array */
   return 0;
 }
+ 
+/*
+the gnome window manager, ignores the function XRaiseWindow or - 
+more precisely - only honours it under certain circumstances. 
+    
+    Metacity allows XRaiseWindow when the same application keeps 
+    focus but defines an application by its window group. 
+    Some [...] older applications also do not set the window group 
+    and, consequently, metacity did not honor window-raising requests 
+    from such applications. 
+
+Apparently calling XRaiseWindow is the old way of doing it. 
+The new way is creating an xevent and sending it to the root window 
+of the window you actually want to raise.
+*/
+void raiseWindow(Display * display, Window win){
+
+  XEvent xev;
+  Window root;
+
+  xev.type = ClientMessage;
+  xev.xclient.display = display;
+  xev.xclient.window = win;
+  xev.xclient.message_type = XInternAtom(
+  display,"_NET_ACTIVE_WINDOW",0);
+  xev.xclient.format = 32;
+  xev.xclient.data.l[0] = 2L;
+  xev.xclient.data.l[1] = CurrentTime;
+
+  root = XDefaultRootWindow(display);
+
+  XSendEvent( display,root,0,
+  SubstructureNotifyMask | 
+  SubstructureRedirectMask,
+  &xev);
+}
+
+int x11_raise_subwindow(unsigned int displayIndex, void* setWindow ){
+    
+    const char* display_str; /* display string */
+    char buf[16];
+    Display* display = NULL; /* X11 display */
+    Window subwindow = 0;  
+  
+    snprintf(buf, sizeof(buf), ":0.%u", displayIndex);
+    display_str = buf;
+
+    /* open current X11 display */
+    display = XOpenDisplay(display_str);
+ 
+    if(!display){
+        printf("x11_raise_subwindow Cannot open X11 display!\n");
+        return -1;
+    }
+  
+    subwindow = (*(Window *) setWindow) ;
+ 
+    // ret =  XRaiseWindow(display, subwindow);
+    raiseWindow(display, subwindow);
+ 
+    XCloseDisplay(display);
+
+    return 0;
+} 
  

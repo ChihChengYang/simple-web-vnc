@@ -1,4 +1,4 @@
- 
+
 package main
 /*
 #cgo LDFLAGS: -L/usr/lib/ -lapp
@@ -57,7 +57,7 @@ type connection struct {
 }
 
 const (
-  maxMessageSize = 512
+  maxMessageSize = 1024//512
 )
  
 func (conn *connection) appMessage() {
@@ -99,13 +99,16 @@ func (conn *connection) appMessage() {
     }
 }
 
-
+//  windowName :=  "Android [Running] - Oracle VM VirtualBox" //"root@ubuntu: /home/jeff/vnc/src/bin"  //"ARC Welder" //"Candy Crush Saga" //"Unsaved Image 1 - Pinta" //"root@ubuntu: /home/jeff/vnc/src/bin" 
 func (conn *connection) appStreaming() {
- 
-    /// windowName :=  "Android [Running] - Oracle VM VirtualBox" //"root@ubuntu: /home/jeff/vnc/src/bin"  //"ARC Welder" //"Candy Crush Saga" //"Unsaved Image 1 - Pinta" //"root@ubuntu: /home/jeff/vnc/src/bin" 
-    // wn := C.CString(windowName)
-     conn.appHandle = C.app_create(1024, 0, 0, 800,600, nil);
-   // conn.appHandle = C.app_create(1024, 0,0, 640,400, wn);
+//------------------------------------------ 
+////    windowName :=  "Unsaved Image 1* - Pinta" 
+////    wn := C.CString(windowName)
+   // conn.appHandle = C.app_create(1024, 0,0, 800,622, wn, 110, 70 , 650, 900); // clip_top, clip_left, clip_bottom, clip_right 
+////    conn.appHandle = C.app_create(1024, 0,0, 800,622, wn, 0, 0 , 0, 0); 
+//------------------------------------------    
+    conn.appHandle = C.app_create(1024, 0, 0, 800,600, nil, 0, 0 , 0, 0);
+//------------------------------------------  
  
     var outData [1024*1024]byte;
     var outSize uint32 
@@ -127,7 +130,7 @@ func (conn *connection) appStreaming() {
   
             case mouseEvent := <-conn.mouseEvent:               
                 if mouseEvent.t == 0{
-                    C.app_mouseButtonPress(conn.appHandle, C.int(mouseEvent.w), C.int(mouseEvent.h), C.float(mouseEvent.x),  C.float(mouseEvent.y) )
+                    C.app_mouseButtonPress(conn.appHandle, C.int(mouseEvent.w), C.int(mouseEvent.h), C.float(mouseEvent.x),  C.float(mouseEvent.y) ) 
                 }
                 if mouseEvent.t == 2{
                     C.app_mouseButtonRelease();
@@ -165,16 +168,16 @@ func play(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+    runtime.GOMAXPROCS(runtime.NumCPU())
   
-  flag.Parse()
-	log.SetFlags(0)
+    flag.Parse()
+    log.SetFlags(0)
   
-  http.HandleFunc("/js/", js) 
-	http.HandleFunc("/", indexHandler) 
-  http.HandleFunc("/play", play)
+    http.HandleFunc("/js/", js) 
+    http.HandleFunc("/", indexHandler) 
+    http.HandleFunc("/play", play)
 
-  http.ListenAndServe("0.0.0.0:8888", nil)
+    http.ListenAndServe("0.0.0.0:8888", nil)
 }
 
  

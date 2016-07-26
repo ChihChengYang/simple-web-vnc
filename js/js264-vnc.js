@@ -38,16 +38,25 @@ var js264 = window.js264 = function( url, opts ) {
 js264.prototype.mouseupPosition = function (event){
    
     mouseFlag = false;
-    var x = event.x;
-    var y = event.y;
+
+    event = event || window.event;
+    // firefox , event.pageX = undefined
+    var scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+    var scrollTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
+    
+    var x = event.pageX != undefined ? event.pageX : event.clientX;
+    var y = event.pageY != undefined ? event.pageY : event.clientY;
+
+    // var x = event.x;
+    // var y = event.y;
     var borderW,borderH;
     var rect = canvas.getBoundingClientRect();
     
     borderW = ((rect.bottom - rect.top ) - canvas.height ) / 2;
     borderH = ((rect.right - rect.left ) - canvas.width ) / 2;
    
-    x = x-rect.left-borderW;
-    y = y-rect.top-borderH;
+    x = x-rect.left-borderW  - scrollLeft;
+    y = y-rect.top-borderH - scrollTop;
 
     if(x<0){
         x=0;
@@ -70,22 +79,29 @@ js264.prototype.mouseupPosition = function (event){
         y: y
     }));
 
-    console.log('mouseupPosition ' );
+    //console.log('mouseupPosition ' );
 }
 
 js264.prototype.mousemovePosition = function (event){
-
+    event.target.style.cursor = 'pointer';
     if(mouseFlag){
-        var x = event.x;
-        var y = event.y;
+        event = event || window.event;
+        // firefox , event.pageX = undefined
+        var scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+        var scrollTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
+    
+        var x = event.pageX != undefined ? event.pageX : event.clientX;
+        var y = event.pageY != undefined ? event.pageY : event.clientY;
+        // var x = event.x;
+        // var y = event.y;
         var borderW,borderH;
         var rect = canvas.getBoundingClientRect();
     
         borderW = ((rect.bottom - rect.top ) - canvas.height ) / 2;
         borderH = ((rect.right - rect.left ) - canvas.width ) / 2;
    
-        x = x-rect.left-borderW;
-        y = y-rect.top-borderH;
+        x = x-rect.left-borderW  - scrollLeft;
+        y = y-rect.top-borderH  - scrollTop;
 
         if(x<0){
             x=0;
@@ -108,23 +124,31 @@ js264.prototype.mousemovePosition = function (event){
             y: y
         }));
 
-        console.log('mousemovePosition ' , x,y);
+        //console.log('mousemovePosition ' , x,y);
     }
 
 }
 
 js264.prototype.mousedownPosition = function (event){
 
-    var x = event.x;
-    var y = event.y;
+    event = event || window.event;
+    // firefox , event.pageX = undefined
+    var scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+    var scrollTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+    var x = event.pageX != undefined ? event.pageX : event.clientX;
+    var y = event.pageY != undefined ? event.pageY : event.clientY;
+
+    // var x = event.x;
+    // var y = event.y;
     var borderW,borderH;
     var rect = canvas.getBoundingClientRect();
     
     borderW = ((rect.bottom - rect.top ) - canvas.height ) / 2;
     borderH = ((rect.right - rect.left ) - canvas.width ) / 2;
    
-    x = x-rect.left-borderW;
-    y = y-rect.top-borderH;
+    x = x-rect.left-borderW - scrollLeft;
+    y = y-rect.top-borderH - scrollTop;
 
     if(x<0){
         x=0;
@@ -149,7 +173,8 @@ js264.prototype.mousedownPosition = function (event){
  
     mouseFlag = true;
 
-  console.log('mousedownPosition ' , x,y);
+//console.log('mousedownPosition => ' , document.body.scrollLeft , document.body.scrollTop,document.documentElement.scrollLeft , document.documentElement.scrollTop, scrollLeft, scrollTop);
+//  console.log('mousedownPosition ' , x,y,borderW,borderH,rect.left,rect.top, event.x, event.y,event.pageX,event.pageY);
  
 } 
 
