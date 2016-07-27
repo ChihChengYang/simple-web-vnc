@@ -24,7 +24,12 @@ var js264 = window.js264 = function( url, opts ) {
     this.canvas = opts.canvas || document.createElement('canvas'); 
     if( url instanceof WebSocket ) {
         ws = this.client = url;
-        this.client.onopen = this.initSocketClient.bind(this);      
+        this.client.onopen = this.initSocketClient.bind(this);   
+
+        this.client.onclose = function(e) {
+            console.log('Disconnected!');
+        };
+
     } 
     else {
         this.load(url);

@@ -19,7 +19,8 @@ import (
     "time"
     "unsafe"
     "runtime"
-    "encoding/json" 
+   "encoding/json" 
+    "sync"
 )
 
 var upgrader = websocket.Upgrader{} // use default options
@@ -54,24 +55,27 @@ type connection struct {
   appHandle *C.handle_App
   mouseTime int64
   mouseEvent chan sMouse
+  sync.RWMutex
 }
 
 const (
   maxMessageSize = 1024//512
 )
- 
+  
 func (conn *connection) appMessage() {
-
+ 
     conn.ws.SetReadLimit(maxMessageSize)     
     for {
         _, message, err := conn.ws.ReadMessage()
-        if err != nil {
-           break
+        if err != nil {    
+            break
         }
-        
+ 
+        conn.RLock()
+ 
         u := map[string]interface{}{}   
         json.Unmarshal(message, &u) 
-
+       
         if u["t"].(float64) == 0 || u["t"].(float64) == 2 || u["t"].(float64) == 1 {
             
             now := time.Now()
@@ -94,8 +98,11 @@ func (conn *connection) appMessage() {
             if t-conn.mouseTime > 10 && !flag{ // mouse move over X ms
                 conn.mouseEvent <- mouse
                 conn.mouseTime = t             
-            }  
-        }       
+            }             
+        }    
+    
+        u = nil 
+        conn.RUnlock()           
     }
 }
 
@@ -114,7 +121,7 @@ func (conn *connection) appStreaming() {
     var outSize uint32 
  
     tick := time.NewTicker(time.Millisecond * 30)
-    flag := true
+    flag := true    
     for {
         select {
             case <-tick.C:
@@ -125,12 +132,15 @@ func (conn *connection) appStreaming() {
                 err := conn.ws.WriteMessage(2,  smallArray)               
                 if err != nil {
                     fmt.Printf("conn.WriteMessage ERROR!!!\n")
+                    flag = false
                     break
                 }
+                smallArray = nil
   
             case mouseEvent := <-conn.mouseEvent:               
                 if mouseEvent.t == 0{
                     C.app_mouseButtonPress(conn.appHandle, C.int(mouseEvent.w), C.int(mouseEvent.h), C.float(mouseEvent.x),  C.float(mouseEvent.y) ) 
+                    fmt.Printf("app_mouseButtonPress\n")
                 }
                 if mouseEvent.t == 2{
                     C.app_mouseButtonRelease();
