@@ -56,11 +56,23 @@ type connection struct {
   mouseTime int64
   mouseEvent chan sMouse
   sync.RWMutex
+  streamingWindowInfo sStreamingWindow
 }
 
 const (
   maxMessageSize = 1024//512
 )
+
+type sStreamingWindow struct {    
+    windowName string
+    outputWidth int
+    outputHeight int
+    clip_top int
+    clip_left int 
+    clip_bottom int
+    clip_right int
+}
+var streamingWindow sStreamingWindow
   
 func (conn *connection) appMessage() {
  
@@ -106,16 +118,33 @@ func (conn *connection) appMessage() {
     }
 }
 
-//  windowName :=  "Android [Running] - Oracle VM VirtualBox" //"root@ubuntu: /home/jeff/vnc/src/bin"  //"ARC Welder" //"Candy Crush Saga" //"Unsaved Image 1 - Pinta" //"root@ubuntu: /home/jeff/vnc/src/bin" 
 func (conn *connection) appStreaming() {
 //------------------------------------------ 
-////    windowName :=  "Unsaved Image 1* - Pinta" 
-////    wn := C.CString(windowName)
-   // conn.appHandle = C.app_create(1024, 0,0, 800,622, wn, 110, 70 , 650, 900); // clip_top, clip_left, clip_bottom, clip_right 
-////    conn.appHandle = C.app_create(1024, 0,0, 800,622, wn, 0, 0 , 0, 0); 
+    if conn.streamingWindowInfo.windowName != "" {    
 //------------------------------------------    
-    conn.appHandle = C.app_create(1024, 0, 0, 800,600, nil, 0, 0 , 0, 0);
+        wn := C.CString(conn.streamingWindowInfo.windowName)
+        conn.appHandle = C.app_create(1024, 0, 0, 
+            C.int(conn.streamingWindowInfo.outputWidth),
+            C.int(conn.streamingWindowInfo.outputHeight), 
+            wn, 
+            C.int(conn.streamingWindowInfo.clip_top), 
+            C.int(conn.streamingWindowInfo.clip_left), 
+            C.int(conn.streamingWindowInfo.clip_bottom), 
+            C.int(conn.streamingWindowInfo.clip_right));
+//------------------------------------------
+
+    }else{
+//------------------------------------------    
+        conn.appHandle = C.app_create(1024, 0, 0, 
+            C.int(conn.streamingWindowInfo.outputWidth),
+            C.int(conn.streamingWindowInfo.outputHeight), 
+            nil, 
+            C.int(conn.streamingWindowInfo.clip_top), 
+            C.int(conn.streamingWindowInfo.clip_left), 
+            C.int(conn.streamingWindowInfo.clip_bottom), 
+            C.int(conn.streamingWindowInfo.clip_right));
 //------------------------------------------  
+    }
  
     var outData [1024*1024]byte;
     var outSize uint32 
@@ -170,16 +199,39 @@ func play(w http.ResponseWriter, r *http.Request) {
     c := &connection{send: make(chan []byte, 256), ws: ws} 
     c.mouseTime = 0
     c.mouseEvent = make(chan sMouse)   
+    c.streamingWindowInfo = streamingWindow
     go c.appMessage() 
     c.appStreaming()  
     
     fmt.Fprintf(w, "ok")
 }
 
+func (ssw *sStreamingWindow) setStreamingWindow(windowName string, outputWidth int, outputHeight int, clip_top int, clip_left int, clip_bottom int, clip_right int) {
+    ssw.windowName = windowName
+    ssw.outputWidth = outputWidth
+    ssw.outputHeight = outputHeight
+    ssw.clip_top = clip_top
+    ssw.clip_left = clip_left
+    ssw.clip_bottom = clip_bottom
+    ssw.clip_right = clip_right
+}
+
+
+//  windowName :=  "Android [Running] - Oracle VM VirtualBox" //"root@ubuntu: /home/jeff/vnc/src/bin"  
+//"ARC Welder" //"Candy Crush Saga" //"Unsaved Image 1 - Pinta" //"root@ubuntu: /home/jeff/vnc/src/bin" 
 func main() {
 
     runtime.GOMAXPROCS(runtime.NumCPU())
-  
+ 
+    streamingWindow.windowName = ""
+    streamingWindow.outputWidth = 800
+    streamingWindow.outputHeight = 600
+    streamingWindow.clip_top = 0
+    streamingWindow.clip_left = 0
+    streamingWindow.clip_bottom = 0
+    streamingWindow.clip_right = 0
+    //streamingWindow.setStreamingWindow("Unsaved Image 1* - Pinta" ,800,600,0,0,0,0)
+ 
     flag.Parse()
     log.SetFlags(0)
   
